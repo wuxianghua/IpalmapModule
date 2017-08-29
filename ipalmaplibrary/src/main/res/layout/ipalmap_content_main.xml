@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/content_main"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:id="@+id/layoutBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingLeft="20dp"
+        android:background="#00a8f3"
+        android:paddingRight="15dp">
+        <LinearLayout
+            android:id="@+id/imageBack"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_centerVertical="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="30dp"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_nav_back"/>
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="25dp"
+                android:textSize="15sp"
+                android:textColor="#FFF"
+                android:gravity="center"
+                android:layout_centerVertical="true"
+                android:text="返回"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="院内导航"
+            android:textColor="#fff"
+            android:textSize="20sp"/>
+    </RelativeLayout>
+    <com.example.ipalmaplibrary.PWebView
+        android:id="@+id/ll_webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </com.example.ipalmaplibrary.PWebView>
+</LinearLayout>
