@@ -3,10 +3,12 @@ package com.example.ipalmaplibrary;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.RemoteException;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.webkit.JavascriptInterface;
 import android.widget.FrameLayout;
 
 import com.example.jsBridge.BridgeHandler;
@@ -29,6 +31,7 @@ import org.altbeacon.beacon.Region;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +58,7 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
     public static final String DISTANCE = "distance";
     public static final String POWER = "power";
     public static final String BRIDGE_PATH = "bridge.js";
-
+    private WebViewPageLoadListener mWebViewPageLoadListener;
     private BeaconManager beaconManager;
     private List<Region> regions = new ArrayList<>();
     private BridgeWebView webView;
@@ -68,6 +71,10 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
     public PWebView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
+    }
+
+    public void setWebViewPageLoadListener (WebViewPageLoadListener webViewPageLoadListener) {
+        mWebViewPageLoadListener = webViewPageLoadListener;
     }
 
     public String getUrl() {
@@ -91,9 +98,15 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
         initWebView();
         webView.setWebViewClient(new BridgeWebViewClient(webView) {
             @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                mWebViewPageLoadListener.pageStart();
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                //BridgeUtil.webViewLoadLocalJs(webView, BRIDGE_PATH);
+                mWebViewPageLoadListener.pageFinished();
             }
         });
         this.addView(webView, LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -104,9 +117,10 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
         beaconManager.setForegroundScanPeriod(2000);
         beaconManager.bind(this);
 
-        webView.setDefaultHandler(new DefaultHandler());
+        /*webView.setDefaultHandler(new DefaultHandler());*/
         webView.setWebChromeClient(new WebChromeClient());
-        webView.registerHandler(PWV_INIT, new BridgeHandler() {
+        webView.addJavascriptInterface(this, "client");
+        /*webView.registerHandler(PWV_INIT, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -116,9 +130,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_CHECKSTATUS, new BridgeHandler() {
+        /*webView.registerHandler(PWV_CHECKSTATUS, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -129,9 +143,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_URLCHANGED, new BridgeHandler() {
+        /*webView.registerHandler(PWV_URLCHANGED, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -140,9 +154,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_REGISTERREGION, new BridgeHandler() {
+        /*webView.registerHandler(PWV_REGISTERREGION, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -166,9 +180,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_UNREGISTERREGION, new BridgeHandler() {
+        /*webView.registerHandler(PWV_UNREGISTERREGION, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -192,14 +206,94 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_DESTROY, new BridgeHandler() {
+        /*webView.registerHandler(PWV_DESTROY, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 exitBeaconScan();
             }
-        });
+        });*/
+    }
+    @JavascriptInterface
+    public void pWebViewDestroy() {
+        exitBeaconScan();
+    }
+
+    @JavascriptInterface
+    public void test() {
+    }
+
+    @JavascriptInterface
+    public void pWebViewInit(String data) {
+        try {
+            JSONObject options = new JSONObject(data);
+            identity = options.optString(UUID);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @JavascriptInterface
+    public String pWebViewCheckStatus() {
+        try {
+            JSONObject result = new JSONObject();
+            result.put("bluetoothStatus", beaconManager.checkAvailability());
+            return result.toString();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @JavascriptInterface
+    public void pWebViewUrlChanged(String data) {
+        Log.e(TAG, "PWV_URLCHANGED: " + data);
+    }
+    @JavascriptInterface
+    public void pWebViewRegistertion(String data) {
+        try {
+            JSONObject options = new JSONObject(data);
+            String uuid = options.optString(UUID);
+            int major = options.optInt(MAJOR, -1);
+            int minor = -1;
+            Region r = new Region(
+                    "",
+                    Identifier.parse(uuid),
+                    major == -1 ? null : Identifier.fromInt(major),
+                    minor == -1 ? null : Identifier.fromInt(minor)
+            );
+            regions.add(r);
+            if (beaconManager.isBound(PWebView.this)) {
+                beaconManager.startRangingBeaconsInRegion(r);
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+    @JavascriptInterface
+    public void unPwebViewRegistertation(String data) {
+        try {
+            if (beaconManager.isBound(PWebView.this)) {
+                JSONObject options = new JSONObject(data);
+                String uuid = options.optString(UUID);
+                int major = options.optInt(MAJOR, -1);
+                int minor = options.optInt(MINOR, -1);
+                Region r = new Region(
+                        "",
+                        Identifier.parse(uuid),
+                        major == -1 ? null : Identifier.fromInt(major),
+                        minor == -1 ? null : Identifier.fromInt(minor)
+                );
+                regions.remove(r);
+                beaconManager.stopRangingBeaconsInRegion(r);
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initWebView() {
@@ -213,6 +307,11 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
         webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); //支持内容重新布局
         webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
         webSettings.setDomStorageEnabled(true);
+    }
+
+    public interface WebViewPageLoadListener{
+        void pageStart();
+        void pageFinished();
     }
 
     private void exitBeaconScan() {
@@ -316,12 +415,13 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
             post(new Runnable() {
                 @Override
                 public void run() {
-                    webView.callHandler(PWV_ONSCANBEACONS, result.toString(), new CallBackFunction() {
+                    webView.loadUrl("javascript: onSearchBeacon('" + result.toString() + "')");
+                    /*webView.callHandler(PWV_ONSCANBEACONS, result.toString(), new CallBackFunction() {
                         @Override
                         public void onCallBack(String data) {
 
                         }
-                    });
+                    });*/
                 }
             });
         } catch (JSONException e) {
@@ -348,7 +448,7 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
     }
 
     public void setOrientationDegree(int angle) {
-        webView.loadUrl("javascript: angleOfNorth('" + angle + "')");
+        webView.loadUrl("javascript: onRotate('" + angle + "')");
     }
 
 }
