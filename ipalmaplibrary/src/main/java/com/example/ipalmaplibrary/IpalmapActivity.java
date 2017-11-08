@@ -2,6 +2,7 @@ package com.example.ipalmaplibrary;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -12,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
@@ -21,7 +23,7 @@ import android.widget.ProgressBar;
 
 public class IpalmapActivity extends AppCompatActivity implements SensorEventListener {
     private PWebView webView;
-    private LinearLayout ivBack;
+    private ImageView ivBack;
     private ProgressBar progressBar;
     private static String MAP_URL = "map_url";
     private SensorManager mSensorManager;
@@ -38,9 +40,10 @@ public class IpalmapActivity extends AppCompatActivity implements SensorEventLis
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.ipalmap_content_main);
         webView =(PWebView) findViewById(R.id.ll_webview);
-        ivBack = (LinearLayout) findViewById(R.id.imageBack);
+        ivBack = (ImageView) findViewById(R.id.imageBack);
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
         String url = getIntent().getStringExtra(MAP_URL);
         mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
@@ -48,8 +51,9 @@ public class IpalmapActivity extends AppCompatActivity implements SensorEventLis
         mField = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         registerListener();
         if (url == null) {
-            //webView.loadURL("file:///android_asset/jstest.html");
-            webView.loadURL("http://bi.palmap.cn/native-guangdong/#/");
+            webView.loadURL("http://parking.ipalmap.com/public/lifang/pro/#/mapView?_k=gq6d61");
+            //webView.loadURL("http://10.0.10.13:8080/");
+            //webView.loadURL("http://bi.palmap.cn/native-guangdong/#/");
         }
         webView.setWebViewPageLoadListener(new PWebView.WebViewPageLoadListener() {
             @Override
@@ -63,13 +67,6 @@ public class IpalmapActivity extends AppCompatActivity implements SensorEventLis
             }
         });
         webView.loadURL(url);
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
-            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_WIFI_STATE,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            },1);
-        }
         ivBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -91,7 +88,6 @@ public class IpalmapActivity extends AppCompatActivity implements SensorEventLis
         }else {
             magneticFieldValues = event.values;
         }
-        //Log.e(TAG,gson.toJson(sensorModel));
         calculateOrientation();
     }
     int degree;
