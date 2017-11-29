@@ -10,12 +10,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.widget.FrameLayout;
-
-import com.example.jsBridge.BridgeHandler;
 import com.example.jsBridge.BridgeWebView;
 import com.example.jsBridge.BridgeWebViewClient;
-import com.example.jsBridge.CallBackFunction;
-import com.example.jsBridge.DefaultHandler;
 import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
@@ -118,7 +114,7 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
         /*webView.setDefaultHandler(new DefaultHandler());*/
         webView.setWebChromeClient(new WebChromeClient());
         webView.addJavascriptInterface(this, "client");
-        webView.registerHandler(PWV_INIT, new BridgeHandler() {
+        /*webView.registerHandler(PWV_INIT, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -128,9 +124,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_CHECKSTATUS, new BridgeHandler() {
+        /*webView.registerHandler(PWV_CHECKSTATUS, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -141,9 +137,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_URLCHANGED, new BridgeHandler() {
+        /*webView.registerHandler(PWV_URLCHANGED, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -152,28 +148,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                         webView.registerHandler(PWV_REGISTERREGION, new BridgeHandler() {
+        /*webView.registerHandler(PWV_REGISTERREGION, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -197,9 +174,9 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_UNREGISTERREGION, new BridgeHandler() {
+        /*webView.registerHandler(PWV_UNREGISTERREGION, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 try {
@@ -223,16 +200,16 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
-        webView.registerHandler(PWV_DESTROY, new BridgeHandler() {
+        /*webView.registerHandler(PWV_DESTROY, new BridgeHandler() {
             @Override
             public void handler(String data, CallBackFunction function) {
                 exitBeaconScan();
             }
-        });
+        });*/
     }
-    /*@JavascriptInterface
+    @JavascriptInterface
     public void pWebViewDestroy() {
         exitBeaconScan();
     }
@@ -311,7 +288,7 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }*/
+    }
     String cacheDirPath;
     private void initWebView() {
         WebSettings webSettings = webView.getSettings();
@@ -324,7 +301,11 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
         webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); //支持内容重新布局
         webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
         webSettings.setDomStorageEnabled(true);
-        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        if (NetworkUtil.isNetworkConnected(getApplicationContext())) {
+            webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        }else {
+            webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        }
         webSettings.setDomStorageEnabled(true);
         cacheDirPath = getApplicationContext().getCacheDir().getAbsolutePath()+"cache_url";
         webSettings.setDatabasePath(cacheDirPath);
@@ -404,6 +385,7 @@ public class PWebView extends FrameLayout implements BeaconConsumer, RangeNotifi
             return;
         }
         try {
+
             final JSONObject result = new JSONObject();
             JSONArray beacons = new JSONArray();
             for (Beacon beacon : collection) {

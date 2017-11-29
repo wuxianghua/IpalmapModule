@@ -10,11 +10,10 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 /**
@@ -51,9 +50,7 @@ public class IpalmapActivity extends AppCompatActivity implements SensorEventLis
         mField = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         registerListener();
         if (url == null) {
-            webView.loadURL("http://parking.ipalmap.com/public/lifang/pro/#/mapView?_k=gq6d61");
-            //webView.loadURL("http://10.0.10.13:8080/");
-            //webView.loadURL("http://bi.palmap.cn/native-guangdong/#/");
+            webView.loadURL("http://bi.palmap.cn/native-dashi/#/");
         }
         webView.setWebViewPageLoadListener(new PWebView.WebViewPageLoadListener() {
             @Override
@@ -67,6 +64,23 @@ public class IpalmapActivity extends AppCompatActivity implements SensorEventLis
             }
         });
         webView.loadURL(url);
+        int permission = ActivityCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION");
+        if(permission == 0) {
+            return;
+        } else {
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_WIFI_STATE,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                },1);
+            }
+        }
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
+            requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_WIFI_STATE,
+            },1);
+        }
         ivBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

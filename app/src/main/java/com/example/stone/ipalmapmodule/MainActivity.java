@@ -18,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //String mapUrl = "http://bi.palmap.cn/native-kangmei/";
+                String mapUrl = "http://10.0.10.53:8081/#/";
                 //IpalmapActivity.navigatorThis(MainActivity.this,mapUrl);
-                IpalmapActivity.navigatorThis(MainActivity.this,null);
+                IpalmapActivity.navigatorThis(MainActivity.this,mapUrl);
             }
         });
     }
